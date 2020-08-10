@@ -28,11 +28,12 @@ server <- function(input, output) {
     library(wordcloud)
     library(RColorBrewer)
     library(dplyr)
+    #These are hidden :D
     rtweet::create_token(app = 'tweetDisect',
-                         consumer_key = 'Sm9sEwIwSA8JNeCnn1j2WxyzZ',
-                         consumer_secret = 'izWQmNvJ3WZ552WbHFSesDisirbPF15cv49BH4ymdoEz5fW0HY',
-                         access_token = '1287092359159742464-2Krp6ChgNkDvMPVQJzVJt0u6E4Q2if',
-                         access_secret = '6zlEwqH2ES85BMDwis6EsHYcPw1heFPId0nBE3VxJ2NQr')
+                         consumer_key = '*****************',
+                         consumer_secret = '*******************',
+                         access_token = '************',
+                         access_secret = '*************')
    timeline <- reactive({rtweet::get_timeline(input$username,n=50)})
    tweets <- reactive({unlist(timeline()%>%select(text))})
     clean_tweets <- reactive({gsub("http\\S+",'',gsub('@\\w+ ?','',gsub('#\\w+ ?','',tweets())))})
