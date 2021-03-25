@@ -12,8 +12,14 @@ library(syuzhet)
 library(reshape2)
 library(waffle)
 library(emojifont)
+library(waiter)
 
-ui <- fluidPage(titlePanel("TweetDisect"),theme = shinythemes::shinytheme('flatly'),
+loading_screen <- tagList(
+  h1("Please Wait", style = "color:white;"),
+  img(src = 'logo.png', height = "400px"))
+
+
+ui <- fluidPage(use_waiter(),titlePanel("TweetDisect"),theme = shinythemes::shinytheme('flatly'),
 sidebarLayout(
         sidebarPanel(
                 textInput('username','Enter a twitter username:','johncena'),
@@ -50,6 +56,10 @@ sidebarLayout(
                                     )
 ))
 server <- function(input, output) {
+    w <- Waiter$new(html = loading_screen, color = "lightblue")
+    w$show()
+    Sys.sleep(1)
+    w$hide()
     #SideBar stuff
     code <- a("MuhammadEzzatHBK", href="https://github.com/MuhammadEzzatHBK/tweetCloud")
     output$github <- renderUI({tagList("Source Code:", code)})
