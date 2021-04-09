@@ -22,7 +22,7 @@ loading_screen <- tagList(
 ui <- fluidPage(use_waiter(),titlePanel("TweetDisect"),theme = shinythemes::shinytheme('flatly'),
 sidebarLayout(
         sidebarPanel(
-                textInput('username','Enter a twitter username:','johncena'),
+                textInput('username','Enter a twitter username:','hadleywickham'),
                 sliderInput("n","Querry Size (in tweets):",1,100,75),
                 uiOutput("user_name"),
                 uiOutput("screen_name"),
@@ -31,6 +31,8 @@ sidebarLayout(
                 uiOutput("description"),
                 uiOutput("profile_url"),
                 HTML("<br>"),
+                downloadButton("report", "Download custom report"),
+                HTML("<br><br>"),
                 img(src='logo.png', height = 140, width = 140,align='center'),
                 uiOutput("github"),
                 uiOutput("linkedin")),
@@ -38,17 +40,18 @@ sidebarLayout(
         mainPanel(
             tabsetPanel(
                 navbarMenu("Frequency Plots",
-                           tabPanel("Tweet Frequency",plotlyOutput('ts')),
+                           tabPanel("Tweet Frequency",plotlyOutput('ts'),DT::DTOutput("tweets")),
                            tabPanel("Top15 Tweeted Words",plotOutput('top15',height = '800px'))),
                 tabPanel("Mutualism",HTML("<b>Mutual/Disparate Relationships</b>"),plotOutput('relationships'),
-                         HTML("ie: This compares the proportion of followed people that follows the user back to the proprtion that doesn't.")),
+                         actionButton("waffle", "i.e")),
                 navbarMenu("Sentiment Analysis",
-                           tabPanel('WordCloud',HTML("<b>Word Cloud</b>"),plotOutput('cloud')),
+                           tabPanel('WordCloud',HTML("<b>Word Cloud</b>"),plotOutput('cloud'),HTML("<br><br><br><br><br><br><br><br><br><br><br><br>"),
+                                    actionButton("cloud", "i.e")),
                            tabPanel("+/-",fluidRow(
                              column(5,HTML("<b>Sentiments Intution</b>"),plotOutput("sentiment_chart",width="100%")),
                              column(7,HTML("<b>Comparison Cloud</b>"),plotOutput("comparison_cloud",width="100%",height = '600px'))
-                           )),                  
-                           tabPanel("Emotion Chart",plotOutput('emotions_plot',width="85%",height = '600px')))
+                           ),actionButton("pie", "i.e")),                  
+                           tabPanel("Emotion Chart",plotOutput('emotions_plot',width="85%",height = '600px'),actionButton("emotions", "i.e")))
 
                 
             )
@@ -56,10 +59,47 @@ sidebarLayout(
                                     )
 ))
 server <- function(input, output) {
+    #Waiter
     w <- Waiter$new(html = loading_screen, color = "lightblue")
     w$show()
-    Sys.sleep(1)
+    Sys.sleep(2)
     w$hide()
+    
+    #Observers
+    observeEvent(input$waffle, {
+      showModal(modalDialog(
+        title = "Mutual/Disparate Relationships",
+        paste("Who follwos",input$username,"back after",input$username,"follows them?"),
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    })
+    observeEvent(input$cloud, {
+      showModal(modalDialog(
+        title = "WordCloud",
+        paste("The more",input$username,"says a particular word, the bigger it gets on the cloud"),
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    })
+    observeEvent(input$pie, {
+      showModal(modalDialog(
+        title = "Positive / Negative sentiments",
+        paste("What does",input$username,"bring to the twitter society?  Findout how we compare his 
+              positive & negative sentiments to each other in terms of both quantity & quality."),
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    })
+    observeEvent(input$emotions, {
+      showModal(modalDialog(
+        title = "Emotion Chart",
+        paste("Let's take a deep dive into ",input$username," feelings & listen to what his heart has to say to us."),
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    })
+    
     #SideBar stuff
     code <- a("MuhammadEzzatHBK", href="https://github.com/MuhammadEzzatHBK/tweetCloud")
     output$github <- renderUI({tagList("Source Code:", code)})
@@ -84,6 +124,8 @@ server <- function(input, output) {
     #Extract Tweets
     timeline <- reactive({rtweet::get_timeline(input$username,n=input$n)})
     tweets <- reactive({unlist(timeline()%>%select(text))})
+    output$tweets <- DT::renderDT(as.data.frame(tweets()))
+    
     
     
     #Processing Tweets
@@ -128,7 +170,8 @@ server <- function(input, output) {
     output$sentiment_chart = renderPlot(sentiment_chart())
     
       #Emotion Chart
-    emotion_matrix <- reactive({get_nrc_sentiment(text())})
+    matrix <- reactive({get_nrc_sentiment(text())})
+    emotion_matrix <- reactive({matrix()[,1:8]})
     transposed_matrix <- reactive({data.frame(t(as.matrix(emotion_matrix())))})
     values <- reactive({as.vector(transposed_matrix()[,1])})
     emotion_data <- reactive({data.frame(names(emotion_matrix()),values())[1:8,]})
@@ -153,10 +196,36 @@ server <- function(input, output) {
     output$relationships <- renderPlot(relationships_chart())
     
     #TimeSeries
-    ts <- reactive({ggplotly(rtweet::ts_plot(rtweet::get_timeline(input$username),"month")+theme_minimal()+xlab('Month')+ylab('Number Of Tweets')+
-                               ggtitle("Tweet Frequency by months"))})
-    output$ts <- renderPlotly(ts())
+    ts <- reactive({rtweet::ts_plot(rtweet::get_timeline(input$username),"month")+theme_minimal()+xlab('Month')+ylab('Number Of Tweets')+
+        ggtitle("Tweet Frequency")})
+    ts_plotly <- reactive({ggplotly(ts())})
+    output$ts <- renderPlotly(ts_plotly())
     
+    #Report
+    output$report <- downloadHandler(
+      
+      filename = "report.docx", ###### 1
+      content = function(file) {
+        
+        tempReport <- file.path(tempdir(), "report.Rmd") ###### 2
+        file.copy("report.Rmd", tempReport, overwrite = TRUE)
+        
+        
+        params <- list(username = input$username,
+                       waffle = relationships_chart(),
+                       ts = ts(),
+                       tweets = as.data.frame(tweets())[1:3,],
+                       top15 = top15(),
+                       emotions = emotions_plot()) ###### 3
+        
+        
+        rmarkdown::render(tempReport, output_file = file, ###### 4
+                          params = params,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+     
+    )
 
 
 }
