@@ -116,10 +116,10 @@ server <- function(input, output) {
     
     #Authentication
     token <- rtweet::create_token(app = 'tweetDisect',
-                         consumer_key = 'AsEmpKeLcUiqZgjwY7WLOoL1g',
-                         consumer_secret = 'DMNKF0X0PMBJzMRCqEFfvz8qx5LKU6Bw75WJaMVt6RZXwUT6RB',
-                         access_token = '1287092359159742464-Otr8mVRspYoTMXD5RydJvb4ZXJO0z8',
-                         access_secret = 'Rw9lOQzDVVTTpt43xcaX7JWlfhNL0tc2dlOgnQxaYDH68')
+                         consumer_key = 'HIDDEN',
+                         consumer_secret = 'HIDDEN',
+                         access_token = 'HIDDEN-HIDDEN',
+                         access_secret = 'HIDDEN')
     
     #Extract Tweets
     timeline <- reactive({rtweet::get_timeline(input$username,n=input$n,token = token)})
