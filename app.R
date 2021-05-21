@@ -115,14 +115,14 @@ server <- function(input, output) {
     output$profile_url<- renderUI({tagList("External:  ", profile())})
     
     #Authentication
-    rtweet::create_token(app = 'tweetDisect',
-                         consumer_key = '_',
-                         consumer_secret = '_',
-                         access_token = '_-_',
-                         access_secret = '_')
+    token <- rtweet::create_token(app = 'tweetDisect',
+                         consumer_key = 'AsEmpKeLcUiqZgjwY7WLOoL1g',
+                         consumer_secret = 'DMNKF0X0PMBJzMRCqEFfvz8qx5LKU6Bw75WJaMVt6RZXwUT6RB',
+                         access_token = '1287092359159742464-Otr8mVRspYoTMXD5RydJvb4ZXJO0z8',
+                         access_secret = 'Rw9lOQzDVVTTpt43xcaX7JWlfhNL0tc2dlOgnQxaYDH68')
     
     #Extract Tweets
-    timeline <- reactive({rtweet::get_timeline(input$username,n=input$n)})
+    timeline <- reactive({rtweet::get_timeline(input$username,n=input$n,token = token)})
     tweets <- reactive({unlist(timeline()%>%select(text))})
     output$tweets <- DT::renderDT(as.data.frame(tweets()))
     
@@ -196,7 +196,7 @@ server <- function(input, output) {
     output$relationships <- renderPlot(relationships_chart())
     
     #TimeSeries
-    ts <- reactive({rtweet::ts_plot(rtweet::get_timeline(input$username),"month")+theme_minimal()+xlab('Month')+ylab('Number Of Tweets')+
+    ts <- reactive({rtweet::ts_plot(rtweet::get_timeline(input$username,token = token),"month")+theme_minimal()+xlab('Month')+ylab('Number Of Tweets')+
         ggtitle("Tweet Frequency")})
     ts_plotly <- reactive({ggplotly(ts())})
     output$ts <- renderPlotly(ts_plotly())

@@ -1,0 +1,47 @@
+---
+title: "Twitter Account Report"
+author: "tweetDisect"
+output: word_document
+params:
+  username : username
+  waffle : waffle
+  ts : ts
+  tweets : tweets
+  top15 : top15
+  emotions: emotions
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+For ``r params$username``.This report will focus on three types of analysis. Account data analysis, Frequency analysis & Content analysis. The data was pulled from [twitter.com](www.twitter.com). This twitter API retrieves only public data that  ``r params$username`` chose to share with the world. So without further to do let's get stated!
+
+## 1) Account data analysis
+Here we will focus on the relationships ``r params$username`` forms with other twitter users. Specifically we will observe the mutual/disaprate relationships ratio. From the people who ``r params$username`` follows how many do follow him back? The next waffle chart will display the difference in proprtions.
+```{r, echo=FALSE}
+params$waffle
+```
+
+## 2) Frequency analysis
+For this section we will observe together how frequent does ``r params$username`` tweets? And what does he/she usally tweets about. First, we will display a time series of the amount of tweets tweeted by ``r params$username``
+```{r, echo=FALSE}
+params$ts
+```
+After a simple word count performed on the tweets data, we were able to identify the most tweeted 15 words excluding stop words like helping verbs, the/a/an. Those words are mostly recognized entities that ``r params$username`` usually tweets about.
+```{r, echo=FALSE}
+params$top15
+```
+And here are the latest three tweets.
+```{r,echo=FALSE}
+params$tweets
+```
+
+## 3) Content analysis
+The final section might be a little personal. We will take a look on the proportions of different emotions ``r params$username`` tweets convey. The next plot displays the mixture of trust, anticipation, joy, sadness, fear, surprise, anger & disgust. These information are obtained via a technique called Sentiment Analysis.
+```{r, echo=FALSE}
+params$emotions
+```
+If the pattern observed isn't really ideal, you can talk him/her on twitter @``r params$username``. We hope that you enjoyed reading this report & found it informative. See you in further analysis at [tweetDisect](https://muhammadezzat.shinyapps.io/tweetDisect/). Goodbye!
+
+
+
